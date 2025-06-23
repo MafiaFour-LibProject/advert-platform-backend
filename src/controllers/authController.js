@@ -35,9 +35,10 @@ const register = async (req, res, next) => {
   }
 };
 
+/*
 const login = async (req, res, next) => {
   try {
-    const { identifier, password } = req.body;
+    const { email, username, password } = req.body;
 
     // Find user by email OR username
     const user = await User.findOne({
@@ -50,7 +51,7 @@ const login = async (req, res, next) => {
     // Compare password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ error: "Invalid password" });
+      return res.status(400).json({ error: "Invalid credential" });
     }
 
     // Create JWT
@@ -59,6 +60,44 @@ const login = async (req, res, next) => {
       process.env.JWT_SECRET
     );
 
+    res.json({ message: "Login successful", token, role: user.role });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  register,
+  login,
+};
+*/
+
+
+const login = async (req, res, next) => {
+  try {
+    const { email, username, password } = req.body;
+
+    // Must provide either an email or a username
+    if (!email && !username) {
+      return res.status(400).json({ error: "Please provide an email or username" });
+    }
+
+    // Find user by email or username
+    const user = await User.findOne(
+      email ? { email } : { username }
+    );
+    if (!user) {
+      return res.status(400).json({ error: "Invalid email or username" });
+    }
+
+    // Compare passwords
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: "Invalid password" });
+    }
+
+    // Create JWT
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET);
     res.json({ message: "Login successful", token, role: user.role });
   } catch (error) {
     next(error);
