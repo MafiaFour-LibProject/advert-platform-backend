@@ -32,7 +32,6 @@ const dotenv = require("dotenv");
 const authRoutes = require("./src/routes/authRoutes");
 const adRoutes = require("./src/routes/adRoutes");
 const userRoutes = require('./src/routes/userRoutes');
-const vendorRoutes = require('./src/routes/vendorRoutes');
 const errorHandler = require('./src/middleware/errorHandler');
 
 dotenv.config();
@@ -47,7 +46,6 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/ads", adRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/vendors", vendorRoutes);
 
 
 // Root Route

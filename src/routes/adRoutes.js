@@ -19,7 +19,8 @@ router.get("/:id", getAdById);
 // Vendors Only
 // router.post("/", authMiddleware(["vendor"]), createAd);
 router.post("/", authMiddleware(["vendor"]), upload.array("media", 5), createAd);
-router.put("/:id", authMiddleware(["vendor"]), updateAd);
+router.put("/:id", authMiddleware(["vendor"]), upload.array("media", 5), updateAd);
+// router.put("/:id", authMiddleware(["vendor"]), updateAd);
 router.delete("/:id", authMiddleware(["vendor"]), deleteAd);
 
 module.exports = router;
