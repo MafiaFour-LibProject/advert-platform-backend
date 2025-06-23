@@ -1,36 +1,43 @@
-openapi: 3.0.0
+openapi: 3.0.3
 info:
-  title: Advert Platform API
+  title: Advert Platform Backend
   version: 1.0.0
-  description: Documentation for the Advert Platform REST API
+  description: >
+    This is the official Advert Platform Backend API.
+    Supports user registration, login, ad creation, ad retrieval, updating, and deleting.
+    Registration and Login can be done using:
+      - Email + Password
+      - OR Username + Password
+    Ad media can be external URLs (no direct file uploads).
 servers:
-  - url: https://advert-platform-backend.onrender.com/api
+  - url: https://advert-platform-backend.onrender.com
+    description: Production Server
+  - url: http://localhost:5000
+    description: Development Server
 tags:
   - name: Auth
-    description: User and Vendor Registration, Login, and Signout
+    description: User Registration and Login
   - name: Ads
-    description: Advertisements Endpoints
-
+    description: Advertisement Operations
 paths:
-  /auth/register:
+  /api/register:
     post:
       tags:
         - Auth
-      summary: Register a user or vendor
-      description: Registration for user or vendor.
+      summary: Register a new user
+      description: |
+        Registration required fields:
+        - name
+        - email
+        - username
+        - phoneNumber
+        - password
+        - role
       requestBody:
         required: true
-        description: Registration fields
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - name
-                - email
-                - username
-                - phoneNumber
-                - password
               properties:
                 name:
                   type: string
@@ -44,98 +51,67 @@ paths:
                   type: string
                 role:
                   type: string
-                  description: Either 'user' or 'vendor'. Defaults to 'user'
       responses:
-        '201':
-          description: Created
-        '400':
-          description: Bad Request
-
-  /auth/login:
+        "201":
+          description: Registration successful
+        "409":
+          description: Conflict - Account already exists
+  /api/login:
     post:
       tags:
         - Auth
-      summary: Login a user or vendor
+      summary: Login
+      description: |
+        Login using:
+        - identifier: Email or username
+        - password: User password
       requestBody:
         required: true
-        description: Enter email or username and password
         content:
           application/json:
             schema:
-              type: object
               properties:
-                email:
-                  type: string
-                username:
+                identifier:
+                  description: Email OR username
                   type: string
                 password:
                   type: string
       responses:
-        '200':
-          description: Success
-        '400':
-          description: Bad Request / Invalid Credentials
-
-  /auth/signout:
-    post:
-      tags:
-        - Auth
-      summary: Sign out the user
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: Successfully signed out
-
-  /ads:
+        "200":
+          description: Login successful
+        "400":
+          description: Invalid email, username, or password
+  /api/ads:
     get:
       tags:
         - Ads
-      summary: Get all ads
-      parameters:
-        - name: title
-          in: query
-          schema:
-            type: string
-        - name: category
-          in: query
-          schema:
-            type: string
-        - name: minPrice
-          in: query
-          schema:
-            type: number
-        - name: maxPrice
-          in: query
-          schema:
-            type: number
-        - name: vendorName
-          in: query
-          schema:
-            type: string
+      summary: Get All Ads
+      description: Returns a list of available ads
       responses:
-        '200':
+        "200":
           description: List of ads
     post:
       tags:
         - Ads
-      summary: Create an ad (Vendor Only)
-      security:
-        - BearerAuth: []
+      summary: Create an Ad
+      description: |
+        Create an ad. Requires:
+        - title, category, price, description
+        - media: array of external URLs (e.g., images, videos)
+
+        Example media URLs:
+        - https://picsum.photos/200/300
+        - https://www.example.com/myproduct.png
       requestBody:
         required: true
-        description: Ad details
         content:
           application/json:
             schema:
-              type: object
               required:
                 - title
                 - category
                 - price
                 - description
-                - media
-                - vendorName
               properties:
                 title:
                   type: string
@@ -149,53 +125,46 @@ paths:
                   type: array
                   items:
                     type: string
-                vendorName:
-                  type: string
+            example:
+              title: "Modern Lipstick"
+              category: "Beauty Products"
+              price: 29.99
+              description: "A long-lasting matte lipstick."
+              media:
+                - "https://media.istockphoto.com/id/1277741500/photo/lipstick-product.png"
       responses:
-        '201':
-          description: Created
-        '400':
+        "201":
+          description: Ad Created
+        "400":
           description: Bad Request
-        '401':
-          description: Unauthorized
-
-  /ads/{id}:
+  /api/ads/{id}:
     get:
       tags:
         - Ads
-      summary: Get an ad by ID
+      summary: Get Ad By Id
+      description: Returns a specific ad
       parameters:
-        - name: id
-          in: path
+        - in: path
+          name: id
           required: true
-          description: The id of the ad
-          schema:
-            type: string
       responses:
-        '200':
-          description: The ad object
-        '404':
+        "200":
+          description: Returns the specific ad
+        "404":
           description: Not Found
     put:
       tags:
         - Ads
-      summary: Update an ad (Vendor Only, Owner Only)
-      security:
-        - BearerAuth: []
+      summary: Update Ad
+      description: Requires authentication as the ad's vendor
       parameters:
-        - name: id
-          in: path
+        - in: path
+          name: id
           required: true
-          description: The id of the ad
-          schema:
-            type: string
       requestBody:
-        required: true
-        description: Fields to update
         content:
           application/json:
             schema:
-              type: object
               properties:
                 title:
                   type: string
@@ -210,32 +179,23 @@ paths:
                   items:
                     type: string
       responses:
-        '200':
-          description: Updated
-        '404':
-          description: Not Found
+        "200":
+          description: Ad updated
+        "403":
+          description: Not authorized to update this ad
     delete:
       tags:
         - Ads
-      summary: Delete an ad (Vendor Only, Owner Only)
-      security:
-        - BearerAuth: []
+      summary: Delete Ad
+      description: Requires authentication as the ad's vendor
       parameters:
-        - name: id
-          in: path
+        - in: path
+          name: id
           required: true
-          description: The id of the ad
-          schema:
-            type: string
       responses:
-        '200':
-          description: Deleted
-        '404':
+        "200":
+          description: Ad deleted
+        "403":
+          description: Not authorized to delete this ad
+        "404":
           description: Not Found
-
-components:
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT

@@ -93,7 +93,7 @@ const login = async (req, res, next) => {
     // Compare passwords
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ error: "Invalid password" });
+      return res.status(400).json({ error: "Invalid credential" });
     }
 
     // Create JWT

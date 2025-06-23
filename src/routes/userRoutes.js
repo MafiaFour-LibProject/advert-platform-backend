@@ -11,10 +11,6 @@ const {
 
 const router = express.Router();
 
-// Auth
-router.post("/register", register);
-router.post("/login", login);
-
 // User CRUD
 router.get("/", getAllUsers);
 router.get("/:id", getUserById);
