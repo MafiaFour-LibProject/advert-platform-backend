@@ -5,7 +5,7 @@ info:
   description: >
     This is the official Advert Platform Backend API.
     Supports user registration, login, ad creation, ad retrieval, updating, and deleting.
-    Registration and Login can be done using:
+    Login can be done using:
       - Email + Password
       - OR Username + Password
     Ad media can be external URLs (no direct file uploads).
@@ -62,25 +62,48 @@ paths:
         - Auth
       summary: Login
       description: |
-        Login using:
-        - identifier: Email or username
-        - password: User password
+        Login using either:
+        - `email` + `password`, OR
+        - `username` + `password`.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              properties:
-                identifier:
-                  description: Email OR username
-                  type: string
-                password:
-                  type: string
+              oneOf:
+                - type: object
+                  required:
+                    - email
+                    - password
+                  properties:
+                    email:
+                      description: User email
+                      type: string
+                      example: "john@example.com"
+                    password:
+                      description: User password
+                      type: string
+                      example: "pass123"
+                - type: object
+                  required:
+                    - username
+                    - password
+                  properties:
+                    username:
+                      description: User username
+                      type: string
+                      example: "johnny"
+                    password:
+                      description: User password
+                      type: string
+                      example: "pass123"
       responses:
         "200":
           description: Login successful
         "400":
           description: Invalid email, username, or password
+
+
   /api/ads:
     get:
       tags:
