@@ -1,0 +1,241 @@
+openapi: 3.0.0
+info:
+  title: Advert Platform API
+  version: 1.0.0
+  description: Documentation for the Advert Platform REST API
+servers:
+  - url: https://advert-platform-backend.onrender.com/api
+tags:
+  - name: Auth
+    description: User and Vendor Registration, Login, and Signout
+  - name: Ads
+    description: Advertisements Endpoints
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Register a user or vendor
+      description: Registration for user or vendor.
+      requestBody:
+        required: true
+        description: Registration fields
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - username
+                - phoneNumber
+                - password
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                username:
+                  type: string
+                phoneNumber:
+                  type: string
+                password:
+                  type: string
+                role:
+                  type: string
+                  description: Either 'user' or 'vendor'. Defaults to 'user'
+      responses:
+        '201':
+          description: Created
+        '400':
+          description: Bad Request
+
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Login a user or vendor
+      requestBody:
+        required: true
+        description: Enter email or username and password
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: Bad Request / Invalid Credentials
+
+  /auth/signout:
+    post:
+      tags:
+        - Auth
+      summary: Sign out the user
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successfully signed out
+
+  /ads:
+    get:
+      tags:
+        - Ads
+      summary: Get all ads
+      parameters:
+        - name: title
+          in: query
+          schema:
+            type: string
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+        - name: vendorName
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of ads
+    post:
+      tags:
+        - Ads
+      summary: Create an ad (Vendor Only)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        description: Ad details
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - category
+                - price
+                - description
+                - media
+                - vendorName
+              properties:
+                title:
+                  type: string
+                category:
+                  type: string
+                price:
+                  type: number
+                description:
+                  type: string
+                media:
+                  type: array
+                  items:
+                    type: string
+                vendorName:
+                  type: string
+      responses:
+        '201':
+          description: Created
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+
+  /ads/{id}:
+    get:
+      tags:
+        - Ads
+      summary: Get an ad by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The id of the ad
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The ad object
+        '404':
+          description: Not Found
+    put:
+      tags:
+        - Ads
+      summary: Update an ad (Vendor Only, Owner Only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The id of the ad
+          schema:
+            type: string
+      requestBody:
+        required: true
+        description: Fields to update
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                category:
+                  type: string
+                price:
+                  type: number
+                description:
+                  type: string
+                media:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Updated
+        '404':
+          description: Not Found
+    delete:
+      tags:
+        - Ads
+      summary: Delete an ad (Vendor Only, Owner Only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The id of the ad
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Deleted
+        '404':
+          description: Not Found
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
